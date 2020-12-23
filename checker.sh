@@ -13,6 +13,7 @@ INTRST_LIST="android_storage_interesting_$DEVSNO"
 rm "$INTRST_LIST" 2>/dev/null
 NETSTATS="android_netstat_$DEVSNO"
 rm "$NETSTATS" 2>/dev/null
+PKGS="android_installed_packages_$DEVSNO"
 
 ##TERMINAL COLORS
 RED="\033[1;31m"
@@ -74,6 +75,38 @@ cat "$LOGFILE"|grep " E " > "$LOGFILE_ERRORS"
 echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Found $(wc -l $LOGFILE_ERRORS|sed 's/ .*//') rows of errors and wrote them to ${YLW}$LOGFILE_ERRORS${GRN}!"
 echo -e "${RSTCOL}| "
 
+echo -e "${WHT}Getting info of all applications..."
+adb shell dumpsys package packages > "$PKGS""_temp"
+echo "Packages to consider inspecting closer:" > "$PKGS"
+INTRST_PKGS=($(grep installerPackage "$PKGS""_temp"|grep -v "com.android.vending"|sed 's/^.*=//g'))
+INTRST_PKGSR=($(grep -n installerPackage "$PKGS""_temp"|grep -v "com.android.vending"|sed 's/:.*$//g'))
+if [ "${#INTRST_PKGSR[@]}" -gt 0 ]
+then
+	for instrow in "${INTRST_PKGSR[@]}"
+	do
+		INSTROW="$instrow"
+		MATCH=0
+		COUNTER=0
+		while [ "$MATCH" == 0 ]
+		do
+			PKG_NAME=$(sed -n "$INSTROW"p "$PKGS""_temp" |grep "^  Package ")
+			let "INSTROW-=1"
+			if [[ ! -z "$PKG_NAME" ]]
+			then
+				echo "$PKG_NAME installed using ${INTRST_PKGS[$COUNTER]}" >> "$PKGS"
+				((COUNTER+=1))
+				MATCH=1
+			fi
+		done
+	done
+fi
+echo -e "${RSTCOL}|  ${YLW}'--> ${RED}Packages to consider inspecting closer:${RSTCOL}"
+tail -n +2 "$PKGS"|sed -e 's/^/\x1b[0m|\x1b[1;33m  |  /'
+cat "$PKGS""_temp" >> "$PKGS"
+echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Saved to ${YLW}$PKGS${GRN}!"
+rm "$PKGS""_temp"
+echo -e "${RSTCOL}|"
+
 echo -e "${WHT}Listing storage content..."
 adb shell ls -RLal storage > "$STORAGE_LIST" 2>/dev/null
 echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}List ${YLW}$STORAGE_LIST${GRN} of storage content now ready!"
@@ -86,6 +119,7 @@ do
 	if [[ ! -z "$MATCHROW" ]]
 	then
 		MATCH=0
+
 		while [ "$MATCH" == 0 ]
 		do
 			PARENT_DIR=$(sed -n "$MATCHROW"p "$STORAGE_LIST" |grep "^storage")
