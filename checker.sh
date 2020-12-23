@@ -10,6 +10,7 @@ LOGFILE_ERRORS="android_log_errors_$DEVSNO"
 STORAGE_LIST="android_storage_list_$DEVSNO"
 INTRST=(apk jar)
 INTRST_LIST="android_storage_interesting_$DEVSNO"
+rm "$INTRST_LIST" 2>/dev/null
 
 ##TERMINAL COLORS
 RED="\033[1;31m"
@@ -26,19 +27,19 @@ echo " "
 echo -e "${WHT}Checking if we've got root access..."
 if adb shell su 2> /dev/null
 then
-        if adb shell ls -al data 2>/dev/null
-        then
-                echo -e "${RSTCOL}|  ${YLW}'--> ${RED}ROOTED!"
-        fi
+	if adb shell ls -al data 2>/dev/null
+	then
+		echo -e "${RSTCOL}|  ${YLW}'--> ${RED}ROOTED!"
+	fi
 else
-        echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}NOT ROOTED!"
-        echo -e "${RSTCOL}|  ${YLW}      '--> ${WHT}Creating a logical, non-invasive backup...${RSTCOL}"
+	echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}NOT ROOTED!"
+	echo -e "${RSTCOL}|  ${YLW}      '--> ${WHT}Creating a logical, non-invasive backup...${RSTCOL}"
 
-        adb backup -all -f "$ADB_BACKUP" |sed -e 's/^/|\x1b[1;31m              /'
-        echo -e "${RSTCOL}|  ${YLW}            '--> ${GRN}Backup ${YLW}$ADB_BACKUP${GRN} created!"
-        echo -e "${RSTCOL}|  ${YLW}            '--> ${WHT}Calculating MD5..."
-        md5sum "$ADB_BACKUP" > "$CHECKSUMS"
-        echo -e "${RSTCOL}|  ${YLW}                  '--> ${GRN}Saved to ${YLW}$CHECKSUMS${GRN}!"
+	adb backup -all -f "$ADB_BACKUP" |sed -e 's/^/|\x1b[1;31m              /'
+	echo -e "${RSTCOL}|  ${YLW}            '--> ${GRN}Backup ${YLW}$ADB_BACKUP${GRN} created!"
+	echo -e "${RSTCOL}|  ${YLW}            '--> ${WHT}Calculating MD5..."
+	md5sum "$ADB_BACKUP" > "$CHECKSUMS"
+	echo -e "${RSTCOL}|  ${YLW}                  '--> ${GRN}Saved to ${YLW}$CHECKSUMS${GRN}!"
 fi
 echo -e "${RSTCOL}|"
 
@@ -58,6 +59,11 @@ adb logcat -d > "$LOGFILE"
 echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Done! Wrote $(wc -l $LOGFILE|sed 's/ .*//') rows to ${YLW}$LOGFILE${GRN}!"
 echo -e "${RSTCOL}|"
 
+echo -e "${WHT}Skimming errors from the log..."
+cat "$LOGFILE"|grep " E " > "$LOGFILE_ERRORS"
+echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Found $(wc -l $LOGFILE_ERRORS|sed 's/ .*//') rows of errors and wrote them to ${YLW}$LOGFILE_ERRORS${GRN}!"
+echo -e "${RSTCOL}| "
+
 echo -e "${WHT}Listing storage content..."
 adb shell ls -RLal storage > "$STORAGE_LIST" 2>/dev/null
 echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}List ${YLW}$STORAGE_LIST${GRN} of storage content now ready!"
@@ -66,12 +72,27 @@ echo -e "${RSTCOL}|"
 echo -e "${WHT}Checking the storage content for potentially interesting files..."
 for file in "${INTRST[@]}"
 do
-        grep ".$file" "$STORAGE_LIST" >> "$INTRST_LIST"
+	MATCHROW=$(grep -n ".$file" "$STORAGE_LIST"|sed 's/:.*$//g')
+	if [[ ! -z "$MATCHROW" ]]
+	then
+		MATCH=0
+		while [ "$MATCH" == 0 ]
+		do
+			PARENT_DIR=$(sed -n "$MATCHROW"p "$STORAGE_LIST" |grep "^storage")
+			let "MATCHROW-=1"
+			if [[ ! -z "$PARENT_DIR" ]]
+			then
+				echo "$PARENT_DIR" >> "$INTRST_LIST"
+				MATCH=1
+			fi
+		done
+	fi
+	grep ".$file" "$STORAGE_LIST" >> "$INTRST_LIST"
 done
 if [ $(wc -m "$INTRST_LIST" |sed 's/ '"$INTRST_LIST"'//g') -gt 10 ]
 then
-        echo -e "${RSTCOL}|  ${YLW}'-->${GRN} Following interesting files found:"
-        cat "$INTRST_LIST" |sed 's/^/\x1b[1;32m|\x1b[1;33m    /g'
+	echo -e "${RSTCOL}|  ${YLW}'-->${GRN} Following interesting files found:"
+	cat "$INTRST_LIST" |sed 's/^/\x1b[1;32m|\x1b[1;33m    /g'
 fi
 echo -e "${RSTCOL}|"
 
