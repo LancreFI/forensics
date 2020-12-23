@@ -11,6 +11,8 @@ STORAGE_LIST="android_storage_list_$DEVSNO"
 INTRST=(apk jar)
 INTRST_LIST="android_storage_interesting_$DEVSNO"
 rm "$INTRST_LIST" 2>/dev/null
+NETSTATS="android_netstat_$DEVSNO"
+rm "$NETSTATS" 2>/dev/null
 
 ##TERMINAL COLORS
 RED="\033[1;31m"
@@ -52,6 +54,14 @@ echo -e "${WHT}Listing processes being run by the user..."
 echo "USER           PID  PPID     VSZ    RSS WCHAN            ADDR S NAME" > "$UPROCLIST"
 grep u[0-9]_[a-z][0-9].* "$PROCLIST" >> "$UPROCLIST"
 echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Running user processes listed in ${YLW}$UPROCLIST${GRN}!"
+echo -e "${RSTCOL}|"
+
+echo -e "${WHT}Getting device's connections and routing table..."
+echo "Device $DEVSNO routing table:" >> "$NETSTATS"
+adb shell netstat -r >> "$NETSTATS"
+echo " " >> "$NETSTATS"
+adb shell netstat -aep >> "$NETSTATS" 2>> "$NETSTATS"
+echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Device netstats saved to ${YLW}$NETSTATS${GRN}!"
 echo -e "${RSTCOL}|"
 
 echo -e "${WHT}Dumping device log to $LOGFILE..."
