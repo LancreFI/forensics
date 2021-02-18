@@ -1,6 +1,8 @@
 #/bin/sh
 ##PRESET VARIABLES
+ANDVRS=$(adb shell getprop ro.build.version.sdk)
 DEVSNO=$(adb get-serialno)
+DEVNFO="android_devinfo_$DEVSNO"
 ADB_BACKUP="android_adb_backup_$DEVSNO"
 CHECKSUMS="android_checksums_$DEVSNO"
 PROCLIST="android_process_list_$DEVSNO"
@@ -46,6 +48,12 @@ else
 fi
 echo -e "${RSTCOL}|"
 
+echo -e "${WHT}Getting device info..."
+echo "Device serial number:	$DEVSNO" > "$DEVNFO"
+echo "Android version:		$ANDVRS" >> "$DEVNFO"
+echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Saved to ${YLW}$DEVNFO${GRN}!"
+echo -e "${RSTCOL}|"
+
 echo -e "${WHT}Listing running processes..."
 adb shell ps -A > "$PROCLIST"
 echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Running processes listed in ${YLW}$PROCLIST${GRN}!"
@@ -76,8 +84,14 @@ echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Found $(wc -l $LOGFILE_ERRORS|sed 's/ .*//
 echo -e "${RSTCOL}| "
 
 echo -e "${WHT}Getting info of all applications..."
-adb shell dumpsys package packages > "$PKGS""_temp"
-echo "Packages to consider inspecting closer:" > "$PKGS"
+echo "##All packages: " > "$PKGS""_temp"
+adb shell pm list packages >> "$PKGS""_temp"
+echo "##Third party packages: " >> "$PKGS""_temp"
+adb shell pm list packages -3 >> "$PKGS""_temp"
+echo "##Disabled packages: " >> "$PKGS""_temp"
+adb shell pm list packages -d >> "$PKGS""_temp"
+adb shell dumpsys package packages >> "$PKGS""_temp"
+echo "##Packages to consider inspecting closer:" > "$PKGS"
 INTRST_PKGS=($(grep installerPackage "$PKGS""_temp"|grep -v "com.android.vending"|sed 's/^.*=//g'))
 INTRST_PKGSR=($(grep -n installerPackage "$PKGS""_temp"|grep -v "com.android.vending"|sed 's/:.*$//g'))
 if [ "${#INTRST_PKGSR[@]}" -gt 0 ]
