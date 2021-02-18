@@ -2,6 +2,10 @@
 My random scripts to help with Android forensics
 
 
+extback.sh:
+This script extracts your Android logical backup taken with ADB.
+
+
 extfile.sh:
 This script decompresses zlib packed content from you extracted Android backup!
 
