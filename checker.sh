@@ -50,7 +50,15 @@ echo -e "${RSTCOL}|"
 
 echo -e "${WHT}Getting device info..."
 echo "Device serial number:	$DEVSNO" > "$DEVNFO"
-echo "Android version:		$ANDVRS" >> "$DEVNFO"
+echo "Android version:	$ANDVRS" >> "$DEVNFO"
+if [[ $(adb shell locksettings verify 2>/dev/null) ]]
+then
+        echo -e "${RSTCOL}|  ${YLW}|    ${GRN}The device has no lock code, it's already unlocked${GRN}!"
+        echo "Lock screen:      	No password detected!" >> "$DEVNFO"
+else
+        echo -e "${RSTCOL}|  ${YLW}|    ${RED}The device has a PIN/pass/pattern protected lock screen${GRN}!"
+        echo "Lock screen:	      Locked with a PIN/pass/pattern!" >> "$DEVNFO"
+fi
 echo -e "${RSTCOL}|  ${YLW}'--> ${GRN}Saved to ${YLW}$DEVNFO${GRN}!"
 echo -e "${RSTCOL}|"
 
@@ -150,7 +158,7 @@ done
 if [ $(wc -m "$INTRST_LIST" |sed 's/ '"$INTRST_LIST"'//g') -gt 10 ]
 then
 	echo -e "${RSTCOL}|  ${YLW}'-->${GRN} Following interesting files found:"
-	cat "$INTRST_LIST" |sed 's/^/\x1b[1;32m|\x1b[1;33m    /g'
+	cat "$INTRST_LIST" |sed 's/^/\x1b[1;32m|\x1b[1;33m       /g'
 fi
 echo -e "${RSTCOL}|"
 
