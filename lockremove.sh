@@ -2,7 +2,7 @@
 echo
 echo -e "\e[93mA quick script to disable a known screen lock password from an android device."
 echo
-echo -e "\e[97mUsage:\e[93m 	bash unlocker.sh lock_code"
+echo -e "\e[97mUsage:\e[93m 	bash lockremove.sh lock_code"
 echo "	Able to remove following locktypes: password, pin, pattern"
 echo "	code: numeric if pin or pattern, alphanumeric and special characters, if password"
 echo "	The minimum length of each is 4"
