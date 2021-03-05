@@ -1,6 +1,8 @@
 # android_forensics
 My random scripts to help with Android forensics
 
+<b>checker.sh</b>:<br>
+Checker gathers all kinds of information from the device and also creates the logical ADB backup. Still pretty much a test.
 
 <b>extback.sh</b>:<br>
 This script extracts your Android logical backup taken with ADB.
