@@ -1,6 +1,9 @@
 # android_forensics
 My random scripts to help with Android forensics
 
+<b>ab-brute-decrypt.sh</b>:<br>
+Try bruteforcing encrypted ADB backup against a wordlist.
+
 <b>checker.sh</b>:<br>
 Checker gathers all kinds of information from the device and also creates the logical ADB backup. Still pretty much a test.
 
