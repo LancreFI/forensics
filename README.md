@@ -2,7 +2,8 @@
 My random scripts to help with Android forensics
 
 <b>ab-brute-decrypt.sh</b>:<br>
-Try bruteforcing encrypted ADB backup against a wordlist.
+Try bruteforcing encrypted ADB backup against a wordlist, not really multi-threadded but multi-process driven if needed:
+bash ad-brute-decrypt.sh encrypted_backupfile.adb wordlist.txt decrypted_backupfile.adb number_of_threads
 
 
 <b>checker.sh</b>:<br>
