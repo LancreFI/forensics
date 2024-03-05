@@ -7,7 +7,7 @@ filetypes might produce quite hefty false positives, unless you lower to file si
 
 --------------------
 
-<b># android_forensics<b>
+<b># android_forensics</b>
 My random scripts to help with Android forensics
 
 <b># ab-brute-decrypt.sh</b>:<br/>
